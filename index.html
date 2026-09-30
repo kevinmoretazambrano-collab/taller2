@@ -1,0 +1,1076 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Examen de Práctica - HTML5 y Desarrollo Web</title>
+    <style>
+        :root {
+            --moodle-blue: #0f6cbf;
+            --moodle-bg: #f4f5f7;
+            --card-bg: #e8f4f8;
+            --correct-bg: #d4edda;
+            --correct-border: #28a745;
+            --incorrect-bg: #f8d7da;
+            --incorrect-border: #dc3545;
+            --text-dark: #333;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--moodle-bg);
+            color: var(--text-dark);
+            margin: 0;
+            padding: 15px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .header-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            background: #fff;
+            padding: 10px 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .timer-box {
+            background-color: #fff3cd;
+            border: 1px solid #ffeeba;
+            color: #856404;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .btn-toggle-timer {
+            background: none;
+            border: 1px solid #ccc;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .question-card {
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            padding: 18px;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .question-title {
+            font-weight: bold;
+            margin-bottom: 15px;
+            font-size: 16px;
+            color: #1d2125;
+        }
+
+        .match-row {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 12px;
+            background: #fff;
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid #ced4da;
+        }
+
+        .match-label {
+            font-family: monospace;
+            font-weight: bold;
+            font-size: 15px;
+            margin-bottom: 6px;
+            color: #0f6cbf;
+        }
+
+        select {
+            width: 100%;
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid #ced4da;
+            background-color: #fff;
+            font-size: 14px;
+            box-sizing: border-box;
+            outline: none;
+        }
+
+        select.is-correct {
+            border-color: var(--correct-border);
+            background-color: var(--correct-bg);
+        }
+
+        select.is-incorrect {
+            border-color: var(--incorrect-border);
+            background-color: var(--incorrect-bg);
+        }
+
+        .feedback {
+            display: none;
+            font-size: 13px;
+            margin-top: 5px;
+            padding: 5px;
+            border-radius: 4px;
+        }
+
+        .feedback.show-error {
+            display: block;
+            color: #721c24;
+            background-color: #f8d7da;
+        }
+
+        .review-summary {
+            display: none;
+            background: #fff;
+            border: 2px solid var(--moodle-blue);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .review-summary h2 {
+            margin-top: 0;
+            color: var(--moodle-blue);
+        }
+
+        .summary-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        .summary-table td {
+            padding: 8px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .summary-table td:first-child {
+            font-weight: bold;
+            width: 40%;
+        }
+
+        .btn-action {
+            background-color: var(--moodle-blue);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .btn-action:hover {
+            background-color: #0b5496;
+        }
+
+        .btn-retry {
+            background-color: #6c757d;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <div class="header-bar">
+        <button class="btn-toggle-timer" onclick="toggleTimer()">Ocultar / Mostrar Tiempo</button>
+        <div class="timer-box" id="timerBox">Tiempo restante: <span id="timer">60:00</span></div>
+    </div>
+
+    <!-- Resumen de Calificación -->
+    <div class="review-summary" id="reviewSummary">
+        <h2>Resumen de la revisión</h2>
+        <table class="summary-table">
+            <tr>
+                <td>Completado en:</td>
+                <td id="resTiempo">-</td>
+            </tr>
+            <tr>
+                <td>Puntos:</td>
+                <td id="resPuntos">-</td>
+            </tr>
+            <tr>
+                <td>Calificación:</td>
+                <td id="resCalificacion" style="font-weight: bold; font-size: 18px; color: var(--moodle-blue);">-</td>
+            </tr>
+            <tr>
+                <td>Comentario:</td>
+                <td id="resComentario">-</td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- Pregunta 1 -->
+    <div class="question-card">
+        <div class="question-title">Pregunta 1: Empareja cada etiqueta HTML con su función.</div>
+        
+        <div class="match-row">
+            <span class="match-label">&lt;li&gt;</span>
+            <select name="p1_li" data-correct="Define un elemento dentro de una lista.">
+                <option value="">Elegir...</option>
+                <option value="Define un elemento dentro de una lista.">Define un elemento dentro de una lista.</option>
+                <option value="Permite cambiar características de la fuente como tamaño o color.">Permite cambiar características de la fuente como tamaño o color.</option>
+                <option value="Muestra el texto en negrita.">Muestra el texto en negrita.</option>
+                <option value="Crea una lista ordenada.">Crea una lista ordenada.</option>
+                <option value="Muestra el texto en cursiva.">Muestra el texto en cursiva.</option>
+                <option value="Crea una lista desordenada.">Crea una lista desordenada.</option>
+                <option value="Muestra el texto subrayado.">Muestra el texto subrayado.</option>
+            </select>
+            <div class="feedback"></div>
+        </div>
+
+        <div class="match-row">
+            <span class="match-label">&lt;font&gt;</span>
+            <select name="p1_font" data-correct="Permite cambiar características de la fuente como tamaño o color.">
+                <option value="">Elegir...</option>
+                <option value="Define un elemento dentro de una lista.">Define un elemento dentro de una lista.</option>
+                <option value="Permite cambiar características de la fuente como tamaño o color.">Permite cambiar características de la fuente como tamaño o color.</option>
+                <option value="Muestra el texto en negrita.">Muestra el texto en negrita.</option>
+                <option value="Crea una lista ordenada.">Crea una lista ordenada.</option>
+                <option value="Muestra el texto en cursiva.">Muestra el texto en cursiva.</option>
+                <option value="Crea una lista desordenada.">Crea una lista desordenada.</option>
+                <option value="Muestra el texto subrayado.">Muestra el texto subrayado.</option>
+            </select>
+            <div class="feedback"></div>
+        </div>
+
+        <div class="match-row">
+            <span class="match-label">&lt;b&gt;</span>
+            <select name="p1_b" data-correct="Muestra el texto en negrita.">
+                <option value="">Elegir...</option>
+                <option value="Define un elemento dentro de una lista.">Define un elemento dentro de una lista.</option>
+                <option value="Permite cambiar características de la fuente como tamaño o color.">Permite cambiar características de la fuente como tamaño o color.</option>
+                <option value="Muestra el texto en negrita.">Muestra el texto en negrita.</option>
+                <option value="Crea una lista ordenada.">Crea una lista ordenada.</option>
+                <option value="Muestra el texto en cursiva.">Muestra el texto en cursiva.</option>
+                <option value="Crea una lista desordenada.">Crea una lista desordenada.</option>
+                <option value="Muestra el texto subrayado.">Muestra el texto subrayado.</option>
+            </select>
+            <div class="feedback"></div>
+        </div>
+
+        <div class="match-row">
+            <span class="match-label">&lt;ol&gt;</span>
+            <select name="p1_ol" data-correct="Crea una lista ordenada.">
+                <option value="">Elegir...</option>
+                <option value="Define un elemento dentro de una lista.">Define un elemento dentro de una lista.</option>
+                <option value="Permite cambiar características de la fuente como tamaño o color.">Permite cambiar características de la fuente como tamaño o color.</option>
+                <option value="Muestra el texto en negrita.">Muestra el texto en negrita.</option>
+                <option value="Crea una lista ordenada.">Crea una lista ordenada.</option>
+                <option value="Muestra el texto en cursiva.">Muestra el texto en cursiva.</option>
+                <option value="Crea una lista desordenada.">Crea una lista desordenada.</option>
+                <option value="Muestra el texto subrayado.">Muestra el texto subrayado.</option>
+            </select>
+            <div class="feedback"></div>
+        </div>
+
+        <div class="match-row">
+            <span class="match-label">&lt;i&gt;</span>
+            <select name="p1_i" data-correct="Muestra el texto en cursiva.">
+                <option value="">Elegir...</option>
+                <option value="Define un elemento dentro de una lista.">Define un elemento dentro de una lista.</option>
+                <option value="Permite cambiar características de la fuente como tamaño o color.">Permite cambiar características de la fuente como tamaño o color.</option>
+                <option value="Muestra el texto en negrita.">Muestra el texto en negrita.</option>
+                <option value="Crea una lista ordenada.">Crea una lista ordenada.</option>
+                <option value="Muestra el texto en cursiva.">Muestra el texto en cursiva.</option>
+                <option value="Crea una lista desordenada.">Crea una lista desordenada.</option>
+                <option value="Muestra el texto subrayado.">Muestra el texto subrayado.</option>
+            </select>
+            <div class="feedback"></div>
+        </div>
+
+        <div class="match-row">
+            <span class="match-label">&lt;ul&gt;</span>
+            <select name="p1_ul" data-correct="Crea una lista desordenada.">
+                <option value="">Elegir...</option>
+                <option value="Define un elemento dentro de una lista.">Define un elemento dentro de una lista.</option>
+                <option value="Permite cambiar características de la fuente como tamaño o color.">Permite cambiar características de la fuente como tamaño o color.</option>
+                <option value="Muestra el texto en negrita.">Muestra el texto en negrita.</option>
+                <option value="Crea una lista ordenada.">Crea una lista ordenada.</option>
+                <option value="Muestra el texto en cursiva.">Muestra el texto en cursiva.</option>
+                <option value="Crea una lista desordenada.">Crea una lista desordenada.</option>
+                <option value="Muestra el texto subrayado.">Muestra el texto subrayado.</option>
+            </select>
+            <div class="feedback"></div>
+        </div>
+
+        <div class="match-row">
+            <span class="match-label">&lt;u&gt;</span>
+            <select name="p1_u" data-correct="Muestra el texto subrayado.">
+                <option value="">Elegir...</option>
+                <option value="Define un elemento dentro de una lista.">Define un elemento dentro de una lista.</option>
+                <option value="Permite cambiar características de la fuente como tamaño o color.">Permite cambiar características de la fuente como tamaño o color.</option>
+                <option value="Muestra el texto en negrita.">Muestra el texto en negrita.</option>
+                <option value="Crea una lista ordenada.">Crea una lista ordenada.</option>
+                <option value="Muestra el texto en cursiva.">Muestra el texto en cursiva.</option>
+                <option value="Crea una lista desordenada.">Crea una lista desordenada.</option>
+                <option value="Muestra el texto subrayado.">Muestra el texto subrayado.</option>
+            </select>
+            <div class="feedback"></div>
+        </div>
+    </div>
+
+    <!-- Pregunta 2 -->
+    <div class="question-card">
+        <div class="question-title">Pregunta 2: Empareja cada etiqueta HTML con su función.</div>
+
+        <div class="match-row">
+            <span class="match-label">&lt;h6&gt;</span>
+            <select name="p2_h6" data-correct="Encabezado o título más pequeño.">
+                <option value="">Elegir...</option>
+                <option value="Encabezado o título más pequeño.">Encabezado o título más pequeño.</option>
+                <option value="Inserta un salto de línea.">Inserta un salto de línea.</option>
+                <option value="Define un párrafo de texto.">Define un párrafo de texto.</option>
+                <option value="Encabezado o título más grande.">Encabezado o título más grande.</option>
+                <option value="Contiene información y configuraciones de la página web.">Contiene información y configuraciones de la página web.</option>
+                <option value="Contiene el contenido visible de la página web.">Contiene el contenido visible de la página web.</option>
+                <option value="Inserta una línea horizontal.">Inserta una línea horizontal.</option>
+            </select>
+            <div class="feedback"></div>
+        </div>
+
+        <div class="match-row">
+            <span class="match-label">&lt;br&gt;</span>
+            <select name="p2_br" data-correct="Inserta un salto de línea.">
+                <option value="">Elegir...</option>
+                <option value="Encabezado o título más pequeño.">Encabezado o título más pequeño.</option>
+                <option value="Inserta un salto de línea.">Inserta un salto de línea.</option>
+                <option value="Define un párrafo de texto.">Define un párrafo de texto.</option>
+                <option value="Encabezado o título más grande.">Encabezado o título más grande.</option>
+                <option value="Contiene información y configuraciones de la página web.">Contiene información y configuraciones de la página web.</option>
+                <option value="Contiene el contenido visible de la página web.">Contiene el contenido visible de la página web.</option>
+                <option value="Inserta una línea horizontal.">Inserta una línea horizontal.</option>
+            </select>
+            <div class="feedback"></div>
+        </div>
+
+        <div class="match-row">
+            <span class="match-label">&lt;p&gt;</span>
+            <select name="p2_p" data-correct="Define un párrafo de texto.">
+                <option value="">Elegir...</option>
+                <option value="Encabezado o título más pequeño.">Encabezado o título más pequeño.</option>
+                <option value="Inserta un salto de línea.">Inserta un salto de línea.</option>
+                <option value="Define un párrafo de texto.">Define un párrafo de texto.</option>
+                <option value="Encabezado o título más grande.">Encabezado o título más grande.</option>
+                <option value="Contiene información y configuraciones de la página web.">Contiene información y configuraciones de la página web.</option>
+                <option value="Contiene el contenido visible de la página web.">Contiene el contenido visible de la página web.</option>
+                <option value="Inserta una línea horizontal.">Inserta una línea horizontal.</option>
+            </select>
+            <div class="feedback"></div>
+        </div>
+
+        <div class="match-row">
+            <span class="match-label">&lt;h1&gt;</span>
+            <select name="p2_h1" data-correct="Encabezado o título más grande.">
+                <option value="">Elegir...</option>
+                <option value="Encabezado o título más pequeño.">Encabezado o título más pequeño.</option>
+                <option value="Inserta un salto de línea.">Inserta un salto de línea.</option>
+                <option value="Define un párrafo de texto.">Define un párrafo de texto.</option>
+                <option value="Encabezado o título más grande.">Encabezado o título más grande.</option>
+                <option value="Contiene información y configuraciones de la página web.">Contiene información y configuraciones de la página web.</option>
+                <option value="Contiene el contenido visible de la página web.">Contiene el contenido visible de la página web.</option>
+                <option value="Inserta una línea horizontal.">Inserta una línea horizontal.</option>
+            </select>
+            <div class="feedback"></div>
+        </div>
+
+        <div class="match-row">
+            <span class="match-label">&lt;head&gt;</span>
+            <select name="p2_head" data-correct="Contiene información y configuraciones de la página web.">
+                <option value="">Elegir...</option>
+                <option value="Encabezado o título más pequeño.">Encabezado o título más pequeño.</option>
+                <option value="Inserta un salto de línea.">Inserta un salto de línea.</option>
+                <option value="Define un párrafo de texto.">Define un párrafo de texto.</option>
+                <option value="Encabezado o título más grande.">Encabezado o título más grande.</option>
+                <option value="Contiene información y configuraciones de la página web.">Contiene información y configuraciones de la página web.</option>
+                <option value="Contiene el contenido visible de la página web.">Contiene el contenido visible de la página web.</option>
+                <option value="Inserta una línea horizontal.">Inserta una línea horizontal.</option>
+            </select>
+            <div class="feedback"></div>
+        </div>
+
+        <div class="match-row">
+            <span class="match-label">&lt;body&gt;</span>
+            <select name="p2_body" data-correct="Contiene el contenido visible de la página web.">
+                <option value="">Elegir...</option>
+                <option value="Encabezado o título más pequeño.">Encabezado o título más pequeño.</option>
+                <option value="Inserta un salto de línea.">Inserta un salto de línea.</option>
+                <option value="Define un párrafo de texto.">Define un párrafo de texto.</option>
+                <option value="Encabezado o título más grande.">Encabezado o título más grande.</option>
+                <option value="Contiene información y configuraciones de la página web.">Contiene información y configuraciones de la página web.</option>
+                <option value="Contiene el contenido visible de la página web.">Contiene el contenido visible de la página web.</option>
+                <option value="Inserta una línea horizontal.">Inserta una línea horizontal.</option>
+            </select>
+            <div class="feedback"></div>
+        </div>
+
+        <div class="match-row">
+            <span class="match-label">&lt;hr&gt;</span>
+            <select name="p2_hr" data-correct="Inserta una línea horizontal.">
+                <option value="">Elegir...</option>
+                <option value="Encabezado o título más pequeño.">Encabezado o título más pequeño.</option>
+                <option value="Inserta un salto de línea.">Inserta un salto de línea.</option>
+                <option value="Define un párrafo de texto.">Define un párrafo de texto.</option>
+                <option value="Encabezado o título más grande.">Encabezado o título más grande.</option>
+                <option value="Contiene información y configuraciones de la página web.">Contiene información y configuraciones de la página web.</option>
+                <option value="Contiene el contenido visible de la página web.">Contiene el contenido visible de la página web.</option>
+                <option value="Inserta una línea horizontal.">Inserta una línea horizontal.</option>
+            </select>
+            <div class="feedback"></div>
+        </div>
+    </div>
+
+    <!-- Pregunta 3 -->
+    <div class="question-card">
+        <div class="question-title">Pregunta 3: Empareja cada concepto con su característica o ejemplo.</div>
+
+        <div class="match-row">
+            <span class="match-label">Visual Studio Code</span>
+            <select name="p3_vscode" data-correct="Editor de código popular">
+                <option value="">Elegir...</option>
+                <option value="Editor de código popular">Editor de código popular</option>
+                <option value="Plataforma de Google para crear y administrar blogs fácilmente.">Plataforma de Google para crear y administrar blogs fácilmente.</option>
+                <option value="Sistema que permite crear y administrar sitios web sin programar.">Sistema que permite crear y administrar sitios web sin programar.</option>
+                <option value="Procesamiento de datos y programación que funciona en el servidor.">Procesamiento de datos y programación que funciona en el servidor.</option>
+                <option value="Herramienta de Google para crear sitios web de forma sencilla sin programar.">Herramienta de Google para crear sitios web de forma sencilla sin programar.</option>
+                <option value="Sistema de gestión de contenidos popular para crear sitios web.">Sistema de gestión de contenidos popular para crear sitios web.</option>
+                <option value="Parte visible del sitio web con la que interactúa el usuario.">Parte visible del sitio web con la que interactúa el usuario.</option>
+            </select>
+            <div class="feedback"></div>
+        </div>
+
+        <div class="match-row">
+            <span class="match-label">Blogger</span>
+            <select name="p3_blogger" data-correct="Plataforma de Google para crear y administrar blogs fácilmente.">
+                <option value="">Elegir...</option>
+                <option value="Editor de código popular">Editor de código popular</option>
+                <option value="Plataforma de Google para crear y administrar blogs fácilmente.">Plataforma de Google para crear y administrar blogs fácilmente.</option>
+                <option value="Sistema que permite crear y administrar sitios web sin programar.">Sistema que permite crear y administrar sitios web sin programar.</option>
+                <option value="Procesamiento de datos y programación que funciona en el servidor.">Procesamiento de datos y programación que funciona en el servidor.</option>
+                <option value="Herramienta de Google para crear sitios web de forma sencilla sin programar.">Herramienta de Google para crear sitios web de forma sencilla sin programar.</option>
+                <option value="Sistema de gestión de contenidos popular para crear sitios web.">Sistema de gestión de contenidos popular para crear sitios web.</option>
+                <option value="Parte visible del sitio web con la que interactúa el usuario.">Parte visible del sitio web con la que interactúa el usuario.</option>
+            </select>
+            <div class="feedback"></div>
+        </div>
+
+        <div class="match-row">
+            <span class="match-label">CMS</span>
+            <select name="p3_cms" data-correct="Sistema que permite crear y administrar sitios web sin programar.">
+                <option value="">Elegir...</option>
+                <option value="Editor de código popular">Editor de código popular</option>
+                <option value="Plataforma de Google para crear y administrar blogs fácilmente.">Plataforma de Google para crear y administrar blogs fácilmente.</option>
+                <option value="Sistema que permite crear y administrar sitios web sin programar.">Sistema que permite crear y administrar sitios web sin programar.</option>
+                <option value="Procesamiento de datos y programación que funciona en el servidor.">Procesamiento de datos y programación que funciona en el servidor.</option>
+                <option value="Herramienta de Google para crear sitios web de forma sencilla sin programar.">Herramienta de Google para crear sitios web de forma sencilla sin programar.</option>
+                <option value="Sistema de gestión de contenidos popular para crear sitios web.">Sistema de gestión de contenidos popular para crear sitios web.</option>
+                <option value="Parte visible del sitio web con la que interactúa el usuario.">Parte visible del sitio web con la que interactúa el usuario.</option>
+            </select>
+            <div class="feedback"></div>
+        </div>
+
+        <div class="match-row">
+            <span class="match-label">Back End</span>
+            <select name="p3_backend" data-correct="Procesamiento de datos y programación que funciona en el servidor.">
+                <option value="">Elegir...</option>
+                <option value="Editor de código popular">Editor de código popular</option>
+                <option value="Plataforma de Google para crear y administrar blogs fácilmente.">Plataforma de Google para crear y administrar blogs fácilmente.</option>
+                <option value="Sistema que permite crear y administrar sitios web sin programar.">Sistema que permite crear y administrar sitios web sin programar.</option>
+                <option value="Procesamiento de datos y programación que funciona en el servidor.">Procesamiento de datos y programación que funciona en el servidor.</option>
+                <option value="Herramienta de Google para crear sitios web de forma sencilla sin programar.">Herramienta de Google para crear sitios web de forma sencilla sin programar.</option>
+                <option value="Sistema de gestión de contenidos popular para crear sitios web.">Sistema de gestión de contenidos popular para crear sitios web.</option>
+                <option value="Parte visible del sitio web con la que interactúa el usuario.">Parte visible del sitio web con la que interactúa el usuario.</option>
+            </select>
+            <div class="feedback"></div>
+        </div>
+
+        <div class="match-row">
+            <span class="match-label">Google Sites</span>
+            <select name="p3_gsites" data-correct="Herramienta de Google para crear sitios web de forma sencilla sin programar.">
+                <option value="">Elegir...</option>
+                <option value="Editor de código popular">Editor de código popular</option>
+                <option value="Plataforma de Google para crear y administrar blogs fácilmente.">Plataforma de Google para crear y administrar blogs fácilmente.</option>
+                <option value="Sistema que permite crear y administrar sitios web sin programar.">Sistema que permite crear y administrar sitios web sin programar.</option>
+                <option value="Procesamiento de datos y programación que funciona en el servidor.">Procesamiento de datos y programación que funciona en el servidor.</option>
+                <option value="Herramienta de Google para crear sitios web de forma sencilla sin programar.">Herramienta de Google para crear sitios web de forma sencilla sin programar.</option>
+                <option value="Sistema de gestión de contenidos popular para crear sitios web.">Sistema de gestión de contenidos popular para crear sitios web.</option>
+                <option value="Parte visible del sitio web con la que interactúa el usuario.">Parte visible del sitio web con la que interactúa el usuario.</option>
+            </select>
+            <div class="feedback"></div>
+        </div>
+
+        <div class="match-row">
+            <span class="match-label">WordPress</span>
+            <select name="p3_wp" data-correct="Sistema de gestión de contenidos popular para crear sitios web.">
+                <option value="">Elegir...</option>
+                <option value="Editor de código popular">Editor de código popular</option>
+                <option value="Plataforma de Google para crear y administrar blogs fácilmente.">Plataforma de Google para crear y administrar blogs fácilmente.</option>
+                <option value="Sistema que permite crear y administrar sitios web sin programar.">Sistema que permite crear y administrar sitios web sin programar.</option>
+                <option value="Procesamiento de datos y programación que funciona en el servidor.">Procesamiento de datos y programación que funciona en el servidor.</option>
+                <option value="Herramienta de Google para crear sitios web de forma sencilla sin programar.">Herramienta de Google para crear sitios web de forma sencilla sin programar.</option>
+                <option value="Sistema de gestión de contenidos popular para crear sitios web.">Sistema de gestión de contenidos popular para crear sitios web.</option>
+                <option value="Parte visible del sitio web con la que interactúa el usuario.">Parte visible del sitio web con la que interactúa el usuario.</option>
+            </select>
+            <div class="feedback"></div>
+        </div>
+
+        <div class="match-row">
+            <span class="match-label">Front End</span>
+            <select name="p3_frontend" data-correct="Parte visible del sitio web con la que interactúa el usuario.">
+                <option value="">Elegir...</option>
+                <option value="Editor de código popular">Editor de código popular</option>
+                <option value="Plataforma de Google para crear y administrar blogs fácilmente.">Plataforma de Google para crear y administrar blogs fácilmente.</option>
+                <option value="Sistema que permite crear y administrar sitios web sin programar.">Sistema que permite crear y administrar sitios web sin programar.</option>
+                <option value="Procesamiento de datos y programación que funciona en el servidor.">Procesamiento de datos y programación que funciona en el servidor.</option>
+                <option value="Herramienta de Google para crear sitios web de forma sencilla sin programar.">Herramienta de Google para crear sitios web de forma sencilla sin programar.</option>
+                <option value="Sistema de gestión de contenidos popular para crear sitios web.">Sistema de gestión de contenidos popular para crear sitios web.</option>
+                <option value="Parte visible del sitio web con la que interactúa el usuario.">Parte visible del sitio web con la que interactúa el usuario.</option>
+            </select>
+            <div class="feedback"></div>
+        </div>
+    </div>
+
+    <!-- Pregunta 4 -->
+    <div class="question-card">
+        <div class="question-title">Pregunta 4: Empareja cada etiqueta HTML con su función.</div>
+
+        <div class="match-row">
+            <span class="match-label">&lt;link&gt;</span>
+            <select name="p4_link" data-correct="Vincula recursos externos como hojas de estilo.">
+                <option value="">Elegir...</option>
+                <option value="Vincula recursos externos como hojas de estilo.">Vincula recursos externos como hojas de estilo.</option>
+                <option value="Permite mostrar imágenes en una página web.">Permite mostrar imágenes en una página web.</option>
+                <option value="Define una tabla en una página web.">Define una tabla en una página web.</option>
+                <option value="Define una fila dentro de una tabla.">Define una fila dentro de una tabla.</option>
+                <option value="Define una celda de datos dentro de una tabla.">Define una celda de datos dentro de una tabla.</option>
+                <option value="Crea un enlace hacia otra página o recurso.">Crea un enlace hacia otra página o recurso.</option>
+            </select>
+            <div class="feedback"></div>
+        </div>
+
+        <div class="match-row">
+            <span class="match-label">&lt;img&gt;</span>
+            <select name="p4_img" data-correct="Permite mostrar imágenes en una página web.">
+                <option value="">Elegir...</option>
+                <option value="Vincula recursos externos como hojas de estilo.">Vincula recursos externos como hojas de estilo.</option>
+                <option value="Permite mostrar imágenes en una página web.">Permite mostrar imágenes en una página web.</option>
+                <option value="Define una tabla en una página web.">Define una tabla en una página web.</option>
+                <option value="Define una fila dentro de una tabla.">Define una fila dentro de una tabla.</option>
+                <option value="Define una celda de datos dentro de una tabla.">Define una celda de datos dentro de una tabla.</option>
+                <option value="Crea un enlace hacia otra página o recurso.">Crea un enlace hacia otra página o recurso.</option>
+            </select>
+            <div class="feedback"></div>
+        </div>
+
+        <div class="match-row">
+            <span class="match-label">&lt;table&gt;</span>
+            <select name="p4_table" data-correct="Define una tabla en una página web.">
+                <option value="">Elegir...</option>
+                <option value="Vincula recursos externos como hojas de estilo.">Vincula recursos externos como hojas de estilo.</option>
+                <option value="Permite mostrar imágenes en una página web.">Permite mostrar imágenes en una página web.</option>
+                <option value="Define una tabla en una página web.">Define una tabla en una página web.</option>
+                <option value="Define una fila dentro de una tabla.">Define una fila dentro de una tabla.</option>
+                <option value="Define una celda de datos dentro de una tabla.">Define una celda de datos dentro de una tabla.</option>
+                <option value="Crea un enlace hacia otra página o recurso.">Crea un enlace hacia otra página o recurso.</option>
+            </select>
+            <div class="feedback"></div>
+        </div>
+
+        <div class="match-row">
+            <span class="match-label">&lt;tr&gt;</span>
+            <select name="p4_tr" data-correct="Define una fila dentro de una tabla.">
+                <option value="">Elegir...</option>
+                <option value="Vincula recursos externos como hojas de estilo.">Vincula recursos externos como hojas de estilo.</option>
+                <option value="Permite mostrar imágenes en una página web.">Permite mostrar imágenes en una página web.</option>
+                <option value="Define una tabla en una página web.">Define una tabla en una página web.</option>
+                <option value="Define una fila dentro de una tabla.">Define una fila dentro de una tabla.</option>
+                <option value="Define una celda de datos dentro de una tabla.">Define una celda de datos dentro de una tabla.</option>
+                <option value="Crea un enlace hacia otra página o recurso.">Crea un enlace hacia otra página o recurso.</option>
+            </select>
+            <div class="feedback"></div>
+        </div>
+
+        <div class="match-row">
+            <span class="match-label">&lt;td&gt;</span>
+            <select name="p4_td" data-correct="Define una celda de datos dentro de una tabla.">
+                <option value="">Elegir...</option>
+                <option value="Vincula recursos externos como hojas de estilo.">Vincula recursos externos como hojas de estilo.</option>
+                <option value="Permite mostrar imágenes en una página web.">Permite mostrar imágenes en una página web.</option>
+                <option value="Define una tabla en una página web.">Define una tabla en una página web.</option>
+                <option value="Define una fila dentro de una tabla.">Define una fila dentro de una tabla.</option>
+                <option value="Define una celda de datos dentro de una tabla.">Define una celda de datos dentro de una tabla.</option>
+                <option value="Crea un enlace hacia otra página o recurso.">Crea un enlace hacia otra página o recurso.</option>
+            </select>
+            <div class="feedback"></div>
+        </div>
+
+        <div class="match-row">
+            <span class="match-label">&lt;a&gt;</span>
+            <select name="p4_a" data-correct="Crea un enlace hacia otra página o recurso.">
+                <option value="">Elegir...</option>
+                <option value="Vincula recursos externos como hojas de estilo.">Vincula recursos externos como hojas de estilo.</option>
+                <option value="Permite mostrar imágenes en una página web.">Permite mostrar imágenes en una página web.</option>
+                <option value="Define una tabla en una página web.">Define una tabla en una página web.</option>
+                <option value="Define una fila dentro de una tabla.">Define una fila dentro de una tabla.</option>
+                <option value="Define una celda de datos dentro de una tabla.">Define una celda de datos dentro de una tabla.</option>
+                <option value="Crea un enlace hacia otra página o recurso.">Crea un enlace hacia otra página o recurso.</option>
+            </select>
+            <div class="feedback"></div>
+        </div>
+    </div>
+
+    <!-- Pregunta 5 -->
+    <div class="question-card">
+        <div class="question-title">Pregunta 5: Empareja cada ejemplo de dominio con su tipo o significado.</div>
+
+        <div class="match-row">
+            <span class="match-label">www.wikipedia.org</span>
+            <select name="p5_wiki" data-correct="Organización sin fines de lucro">
+                <option value="">Elegir...</option>
+                <option value="Organización sin fines de lucro">Organización sin fines de lucro</option>
+                <option value="Entidad gubernamental">Entidad gubernamental</option>
+                <option value="Sitio comercial">Sitio comercial</option>
+                <option value="Sitio web de Ecuador">Sitio web de Ecuador</option>
+                <option value="Institución educativa">Institución educativa</option>
+                <option value="Sitio web de México">Sitio web de México</option>
+                <option value="Sitio web de España">Sitio web de España</option>
+            </select>
+            <div class="feedback"></div>
+        </div>
+
+        <div class="match-row">
+            <span class="match-label">www.nasa.gov</span>
+            <select name="p5_nasa" data-correct="Entidad gubernamental">
+                <option value="">Elegir...</option>
+                <option value="Organización sin fines de lucro">Organización sin fines de lucro</option>
+                <option value="Entidad gubernamental">Entidad gubernamental</option>
+                <option value="Sitio comercial">Sitio comercial</option>
+                <option value="Sitio web de Ecuador">Sitio web de Ecuador</option>
+                <option value="Institución educativa">Institución educativa</option>
+                <option value="Sitio web de México">Sitio web de México</option>
+                <option value="Sitio web de España">Sitio web de España</option>
+            </select>
+            <div class="feedback"></div>
+        </div>
+
+        <div class="match-row">
+            <span class="match-label">www.amazon.com</span>
+            <select name="p5_amazon" data-correct="Sitio comercial">
+                <option value="">Elegir...</option>
+                <option value="Organización sin fines de lucro">Organización sin fines de lucro</option>
+                <option value="Entidad gubernamental">Entidad gubernamental</option>
+                <option value="Sitio comercial">Sitio comercial</option>
+                <option value="Sitio web de Ecuador">Sitio web de Ecuador</option>
+                <option value="Institución educativa">Institución educativa</option>
+                <option value="Sitio web de México">Sitio web de México</option>
+                <option value="Sitio web de España">Sitio web de España</option>
+            </select>
+            <div class="feedback"></div>
+        </div>
+
+        <div class="match-row">
+            <span class="match-label">www.eluniverso.com.ec</span>
+            <select name="p5_ec" data-correct="Sitio web de Ecuador">
+                <option value="">Elegir...</option>
+                <option value="Organización sin fines de lucro">Organización sin fines de lucro</option>
+                <option value="Entidad gubernamental">Entidad gubernamental</option>
+                <option value="Sitio comercial">Sitio comercial</option>
+                <option value="Sitio web de Ecuador">Sitio web de Ecuador</option>
+                <option value="Institución educativa">Institución educativa</option>
+                <option value="Sitio web de México">Sitio web de México</option>
+                <option value="Sitio web de España">Sitio web de España</option>
+            </select>
+            <div class="feedback"></div>
+        </div>
+
+        <div class="match-row">
+            <span class="match-label">www.mit.edu</span>
+            <select name="p5_mit" data-correct="Institución educativa">
+                <option value="">Elegir...</option>
+                <option value="Organización sin fines de lucro">Organización sin fines de lucro</option>
+                <option value="Entidad gubernamental">Entidad gubernamental</option>
+                <option value="Sitio comercial">Sitio comercial</option>
+                <option value="Sitio web de Ecuador">Sitio web de Ecuador</option>
+                <option value="Institución educativa">Institución educativa</option>
+                <option value="Sitio web de México">Sitio web de México</option>
+                <option value="Sitio web de España">Sitio web de España</option>
+            </select>
+            <div class="feedback"></div>
+        </div>
+
+        <div class="match-row">
+            <span class="match-label">www.unam.mx</span>
+            <select name="p5_unam" data-correct="Sitio web de México">
+                <option value="">Elegir...</option>
+                <option value="Organización sin fines de lucro">Organización sin fines de lucro</option>
+                <option value="Entidad gubernamental">Entidad gubernamental</option>
+                <option value="Sitio comercial">Sitio comercial</option>
+                <option value="Sitio web de Ecuador">Sitio web de Ecuador</option>
+                <option value="Institución educativa">Institución educativa</option>
+                <option value="Sitio web de México">Sitio web de México</option>
+                <option value="Sitio web de España">Sitio web de España</option>
+            </select>
+            <div class="feedback"></div>
+        </div>
+
+        <div class="match-row">
+            <span class="match-label">www.rtve.es</span>
+            <select name="p5_rtve" data-correct="Sitio web de España">
+                <option value="">Elegir...</option>
+                <option value="Organización sin fines de lucro">Organización sin fines de lucro</option>
+                <option value="Entidad gubernamental">Entidad gubernamental</option>
+                <option value="Sitio comercial">Sitio comercial</option>
+                <option value="Sitio web de Ecuador">Sitio web de Ecuador</option>
+                <option value="Institución educativa">Institución educativa</option>
+                <option value="Sitio web de México">Sitio web de México</option>
+                <option value="Sitio web de España">Sitio web de España</option>
+            </select>
+            <div class="feedback"></div>
+        </div>
+    </div>
+
+    <!-- Pregunta 6 -->
+    <div class="question-card">
+        <div class="question-title">Pregunta 6: Empareja cada concepto con su definición correcta.</div>
+
+        <div class="match-row">
+            <span class="match-label">Página web</span>
+            <select name="p6_pagweb" data-correct="Documento electrónico que se visualiza en un navegador.">
+                <option value="">Elegir...</option>
+                <option value="Documento electrónico que se visualiza en un navegador.">Documento electrónico que se visualiza en un navegador.</option>
+                <option value="Identificador de un conjunto de dispositivos publicados en internet.">Identificador de un conjunto de dispositivos publicados en internet.</option>
+                <option value="Dirección única que identifica un recurso en internet.">Dirección única que identifica un recurso en internet.</option>
+                <option value="Lugar donde se almacenan los archivos de un sitio web.">Lugar donde se almacenan los archivos de un sitio web.</option>
+                <option value="Conjunto de páginas web relacionadas entre sí.">Conjunto de páginas web relacionadas entre sí.</option>
+                <option value="Uso de inteligencia artificial y dispositivos inteligentes">Uso de inteligencia artificial y dispositivos inteligentes</option>
+            </select>
+            <div class="feedback"></div>
+        </div>
+
+        <div class="match-row">
+            <span class="match-label">Dominio</span>
+            <select name="p6_dominio" data-correct="Identificador de un conjunto de dispositivos publicados en internet.">
+                <option value="">Elegir...</option>
+                <option value="Documento electrónico que se visualiza en un navegador.">Documento electrónico que se visualiza en un navegador.</option>
+                <option value="Identificador de un conjunto de dispositivos publicados en internet.">Identificador de un conjunto de dispositivos publicados en internet.</option>
+                <option value="Dirección única que identifica un recurso en internet.">Dirección única que identifica un recurso en internet.</option>
+                <option value="Lugar donde se almacenan los archivos de un sitio web.">Lugar donde se almacenan los archivos de un sitio web.</option>
+                <option value="Conjunto de páginas web relacionadas entre sí.">Conjunto de páginas web relacionadas entre sí.</option>
+                <option value="Uso de inteligencia artificial y dispositivos inteligentes">Uso de inteligencia artificial y dispositivos inteligentes</option>
+            </select>
+            <div class="feedback"></div>
+        </div>
+
+        <div class="match-row">
+            <span class="match-label">URL</span>
+            <select name="p6_url" data-correct="Dirección única que identifica un recurso en internet.">
+                <option value="">Elegir...</option>
+                <option value="Documento electrónico que se visualiza en un navegador.">Documento electrónico que se visualiza en un navegador.</option>
+                <option value="Identificador de un conjunto de dispositivos publicados en internet.">Identificador de un conjunto de dispositivos publicados en internet.</option>
+                <option value="Dirección única que identifica un recurso en internet.">Dirección única que identifica un recurso en internet.</option>
+                <option value="Lugar donde se almacenan los archivos de un sitio web.">Lugar donde se almacenan los archivos de un sitio web.</option>
+                <option value="Conjunto de páginas web relacionadas entre sí.">Conjunto de páginas web relacionadas entre sí.</option>
+                <option value="Uso de inteligencia artificial y dispositivos inteligentes">Uso de inteligencia artificial y dispositivos inteligentes</option>
+            </select>
+            <div class="feedback"></div>
+        </div>
+
+        <div class="match-row">
+            <span class="match-label">Hosting</span>
+            <select name="p6_hosting" data-correct="Lugar donde se almacenan los archivos de un sitio web.">
+                <option value="">Elegir...</option>
+                <option value="Documento electrónico que se visualiza en un navegador.">Documento electrónico que se visualiza en un navegador.</option>
+                <option value="Identificador de un conjunto de dispositivos publicados en internet.">Identificador de un conjunto de dispositivos publicados en internet.</option>
+                <option value="Dirección única que identifica un recurso en internet.">Dirección única que identifica un recurso en internet.</option>
+                <option value="Lugar donde se almacenan los archivos de un sitio web.">Lugar donde se almacenan los archivos de un sitio web.</option>
+                <option value="Conjunto de páginas web relacionadas entre sí.">Conjunto de páginas web relacionadas entre sí.</option>
+                <option value="Uso de inteligencia artificial y dispositivos inteligentes">Uso de inteligencia artificial y dispositivos inteligentes</option>
+            </select>
+            <div class="feedback"></div>
+        </div>
+
+        <div class="match-row">
+            <span class="match-label">Sitio web</span>
+            <select name="p6_sitioweb" data-correct="Conjunto de páginas web relacionadas entre sí.">
+                <option value="">Elegir...</option>
+                <option value="Documento electrónico que se visualiza en un navegador.">Documento electrónico que se visualiza en un navegador.</option>
+                <option value="Identificador de un conjunto de dispositivos publicados en internet.">Identificador de un conjunto de dispositivos publicados en internet.</option>
+                <option value="Dirección única que identifica un recurso en internet.">Dirección única que identifica un recurso en internet.</option>
+                <option value="Lugar donde se almacenan los archivos de un sitio web.">Lugar donde se almacenan los archivos de un sitio web.</option>
+                <option value="Conjunto de páginas web relacionadas entre sí.">Conjunto de páginas web relacionadas entre sí.</option>
+                <option value="Uso de inteligencia artificial y dispositivos inteligentes">Uso de inteligencia artificial y dispositivos inteligentes</option>
+            </select>
+            <div class="feedback"></div>
+        </div>
+
+        <div class="match-row">
+            <span class="match-label">Web 3.0</span>
+            <select name="p6_web3" data-correct="Uso de inteligencia artificial y dispositivos inteligentes">
+                <option value="">Elegir...</option>
+                <option value="Documento electrónico que se visualiza en un navegador.">Documento electrónico que se visualiza en un navegador.</option>
+                <option value="Identificador de un conjunto de dispositivos publicados en internet.">Identificador de un conjunto de dispositivos publicados en internet.</option>
+                <option value="Dirección única que identifica un recurso en internet.">Dirección única que identifica un recurso en internet.</option>
+                <option value="Lugar donde se almacenan los archivos de un sitio web.">Lugar donde se almacenan los archivos de un sitio web.</option>
+                <option value="Conjunto de páginas web relacionadas entre sí.">Conjunto de páginas web relacionadas entre sí.</option>
+                <option value="Uso de inteligencia artificial y dispositivos inteligentes">Uso de inteligencia artificial y dispositivos inteligentes</option>
+            </select>
+            <div class="feedback"></div>
+        </div>
+    </div>
+
+    <!-- Pregunta 7 -->
+    <div class="question-card">
+        <div class="question-title">Pregunta 7: Empareja cada etiqueta HTML con su función.</div>
+
+        <div class="match-row">
+            <span class="match-label">&lt;!DOCTYPE html&gt;</span>
+            <select name="p7_doctype" data-correct="Indica que el documento está escrito en HTML5">
+                <option value="">Elegir...</option>
+                <option value="Indica que el documento está escrito en HTML5">Indica que el documento está escrito en HTML5</option>
+                <option value="No tiene etiqueta de cierre">No tiene etiqueta de cierre</option>
+                <option value="Etiqueta de cierre del body">Etiqueta de cierre del body</option>
+                <option value="Etiqueta de inicio del body">Etiqueta de inicio del body</option>
+            </select>
+            <div class="feedback"></div>
+        </div>
+
+        <div class="match-row">
+            <span class="match-label">&lt;img&gt;</span>
+            <select name="p7_imgnoclose" data-correct="No tiene etiqueta de cierre">
+                <option value="">Elegir...</option>
+                <option value="Indica que el documento está escrito en HTML5">Indica que el documento está escrito en HTML5</option>
+                <option value="No tiene etiqueta de cierre">No tiene etiqueta de cierre</option>
+                <option value="Etiqueta de cierre del body">Etiqueta de cierre del body</option>
+                <option value="Etiqueta de inicio del body">Etiqueta de inicio del body</option>
+            </select>
+            <div class="feedback"></div>
+        </div>
+
+        <div class="match-row">
+            <span class="match-label">&lt;/body&gt;</span>
+            <select name="p7_closebody" data-correct="Etiqueta de cierre del body">
+                <option value="">Elegir...</option>
+                <option value="Indica que el documento está escrito en HTML5">Indica que el documento está escrito en HTML5</option>
+                <option value="No tiene etiqueta de cierre">No tiene etiqueta de cierre</option>
+                <option value="Etiqueta de cierre del body">Etiqueta de cierre del body</option>
+                <option value="Etiqueta de inicio del body">Etiqueta de inicio del body</option>
+            </select>
+            <div class="feedback"></div>
+        </div>
+
+        <div class="match-row">
+            <span class="match-label">&lt;body&gt;</span>
+            <select name="p7_startbody" data-correct="Etiqueta de inicio del body">
+                <option value="">Elegir...</option>
+                <option value="Indica que el documento está escrito en HTML5">Indica que el documento está escrito en HTML5</option>
+                <option value="No tiene etiqueta de cierre">No tiene etiqueta de cierre</option>
+                <option value="Etiqueta de cierre del body">Etiqueta de cierre del body</option>
+                <option value="Etiqueta de inicio del body">Etiqueta de inicio del body</option>
+            </select>
+            <div class="feedback"></div>
+        </div>
+    </div>
+
+    <!-- Pregunta 8 -->
+    <div class="question-card">
+        <div class="question-title">Pregunta 8: Empareja cada atributo, valor o código con su definición.</div>
+
+        <div class="match-row">
+            <span class="match-label">width</span>
+            <select name="p8_width" data-correct="Indica el ancho de un elemento">
+                <option value="">Elegir...</option>
+                <option value="Indica el ancho de un elemento">Indica el ancho de un elemento</option>
+                <option value="Inserta un espacio en blanco">Inserta un espacio en blanco</option>
+                <option value="Es un ejemplo de color RGB">Es un ejemplo de color RGB</option>
+                <option value="Es un ejemplo de color hexadecimal">Es un ejemplo de color hexadecimal</option>
+                <option value="Indica la altura de un elemento">Indica la altura de un elemento</option>
+            </select>
+            <div class="feedback"></div>
+        </div>
+
+        <div class="match-row">
+            <span class="match-label">&amp;nbsp;</span>
+            <select name="p8_nbsp" data-correct="Inserta un espacio en blanco">
+                <option value="">Elegir...</option>
+                <option value="Indica el ancho de un elemento">Indica el ancho de un elemento</option>
+                <option value="Inserta un espacio en blanco">Inserta un espacio en blanco</option>
+                <option value="Es un ejemplo de color RGB">Es un ejemplo de color RGB</option>
+                <option value="Es un ejemplo de color hexadecimal">Es un ejemplo de color hexadecimal</option>
+                <option value="Indica la altura de un elemento">Indica la altura de un elemento</option>
+            </select>
+            <div class="feedback"></div>
+        </div>
+
+        <div class="match-row">
+            <span class="match-label">(168, 84, 67)</span>
+            <select name="p8_rgb" data-correct="Es un ejemplo de color RGB">
+                <option value="">Elegir...</option>
+                <option value="Indica el ancho de un elemento">Indica el ancho de un elemento</option>
+                <option value="Inserta un espacio en blanco">Inserta un espacio en blanco</option>
+                <option value="Es un ejemplo de color RGB">Es un ejemplo de color RGB</option>
+                <option value="Es un ejemplo de color hexadecimal">Es un ejemplo de color hexadecimal</option>
+                <option value="Indica la altura de un elemento">Indica la altura de un elemento</option>
+            </select>
+            <div class="feedback"></div>
+        </div>
+
+        <div class="match-row">
+            <span class="match-label">#FF0000</span>
+            <select name="p8_hex" data-correct="Es un ejemplo de color hexadecimal">
+                <option value="">Elegir...</option>
+                <option value="Indica el ancho de un elemento">Indica el ancho de un elemento</option>
+                <option value="Inserta un espacio en blanco">Inserta un espacio en blanco</option>
+                <option value="Es un ejemplo de color RGB">Es un ejemplo de color RGB</option>
+                <option value="Es un ejemplo de color hexadecimal">Es un ejemplo de color hexadecimal</option>
+                <option value="Indica la altura de un elemento">Indica la altura de un elemento</option>
+            </select>
+            <div class="feedback"></div>
+        </div>
+
+        <div class="match-row">
+            <span class="match-label">height</span>
+            <select name="p8_height" data-correct="Indica la altura de un elemento">
+                <option value="">Elegir...</option>
+                <option value="Indica el ancho de un elemento">Indica el ancho de un elemento</option>
+                <option value="Inserta un espacio en blanco">Inserta un espacio en blanco</option>
+                <option value="Es un ejemplo de color RGB">Es un ejemplo de color RGB</option>
+                <option value="Es un ejemplo de color hexadecimal">Es un ejemplo de color hexadecimal</option>
+                <option value="Indica la altura de un elemento">Indica la altura de un elemento</option>
+            </select>
+            <div class="feedback"></div>
+        </div>
+    </div>
+
+    <!-- Botones de Acción -->
+    <button class="btn-action" id="finishBtn" onclick="finishExam()">Terminar intento...</button>
+    <button class="btn-action btn-retry" id="retryBtn" onclick="resetExam()" style="display: none;">Reintentar el examen</button>
+
+</div>
+
+<script>
+    let secondsLeft = 3600;
+    let timerInterval = setInterval(updateTimer, 1000);
+    let startTime = new Date();
+
+    // Guardado y recuperación automática en el celular
+    document.addEventListener("DOMContentLoaded", () => {
+        document.querySelectorAll("select").forEach(select => {
+            let savedValue = localStorage.getItem("practica2_" + select.name);
+            if (savedValue) {
+                select.value = savedValue;
+            }
+            select.addEventListener("change", () => {
+                localStorage.setItem("practica2_" + select.name, select.value);
+            });
+        });
+    });
+
+    function updateTimer() {
+        if (secondsLeft <= 0) {
+            clearInterval(timerInterval);
+            finishExam();
+            return;
+        }
+        secondsLeft--;
+        let mins = Math.floor(secondsLeft / 60);
+        let secs = secondsLeft % 60;
+        document.getElementById("timer").innerText = 
+            (mins < 10 ? "0" + mins : mins) + ":" + (secs < 10 ? "0" + secs : secs);
+    }
+
+    function toggleTimer() {
+        let box = document.getElementById("timerBox");
+        box.style.display = (box.style.display === "none") ? "inline-block" : "none";
+    }
+
+    function finishExam() {
+        clearInterval(timerInterval);
+
+        let endTime = new Date();
+        let timeDiff = Math.floor((endTime - startTime) / 1000);
+        let minsUsed = Math.floor(timeDiff / 60);
+        let secsUsed = timeDiff % 60;
+
+        let selects = document.querySelectorAll("select");
+        let totalItems = selects.length;
+        let correctCount = 0;
+
+        selects.forEach(select => {
+            let userAns = select.value;
+            let correctAns = select.getAttribute("data-correct");
+            let feedback = select.nextElementSibling;
+
+            select.disabled = true;
+
+            if (userAns === correctAns) {
+                correctCount++;
+                select.classList.add("is-correct");
+                select.classList.remove("is-incorrect");
+                feedback.classList.remove("show-error");
+            } else {
+                select.classList.add("is-incorrect");
+                select.classList.remove("is-correct");
+                feedback.innerHTML = "✖ <strong>Respuesta correcta:</strong> " + correctAns;
+                feedback.classList.add("show-error");
+            }
+        });
+
+        let score = (correctCount / totalItems) * 10;
+        let percentage = Math.round((correctCount / totalItems) * 100);
+
+        document.getElementById("reviewSummary").style.display = "block";
+        document.getElementById("resTiempo").innerText = minsUsed + " min " + secsUsed + " seg";
+        document.getElementById("resPuntos").innerText = correctCount + ",00 / " + totalItems + ",00";
+        document.getElementById("resCalificacion").innerText = score.toFixed(2).replace('.', ',') + " de 10,00 (" + percentage + "%)";
+
+        let comment = "";
+        if (score === 10) comment = "¡Excelente! Has alcanzado el puntaje máximo (100%).";
+        else if (score >= 9) comment = "¡Muy buen trabajo! Casi impecable.";
+        else if (score >= 7) comment = "Buen resultado, repasa las marcadas en rojo.";
+        else comment = "Sigue estudiando y vuelve a intentarlo.";
+
+        document.getElementById("resComentario").innerText = comment;
+
+        document.getElementById("finishBtn").style.display = "none";
+        document.getElementById("retryBtn").style.display = "inline-block";
+
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function resetExam() {
+        // Limpiar autoguardado
+        document.querySelectorAll("select").forEach(select => {
+            localStorage.removeItem("practica2_" + select.name);
+            select.disabled = false;
+            select.value = "";
+            select.classList.remove("is-correct", "is-incorrect");
+            let feedback = select.nextElementSibling;
+            feedback.classList.remove("show-error");
+        });
+
+        document.getElementById("reviewSummary").style.display = "none";
+        document.getElementById("finishBtn").style.display = "inline-block";
+        document.getElementById("retryBtn").style.display = "none";
+
+        secondsLeft = 3600;
+        startTime = new Date();
+        clearInterval(timerInterval);
+        timerInterval = setInterval(updateTimer, 1000);
+
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+</script>
+
+</body>
+</html>
